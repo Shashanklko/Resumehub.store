@@ -156,3 +156,4 @@ python bot.py
 ---
 
 Built with ❤️ using Python, python-telegram-bot, Google Gemini API, and ReportLab.
+
