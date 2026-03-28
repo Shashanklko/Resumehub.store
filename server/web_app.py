@@ -305,27 +305,35 @@ def download_report():
     except Exception as e:
         return str(e), 500
 
+import asyncio
+bot_application = None
+bot_loop = None
+
 # ── Telegram Webhook Entry Point ───────────────────────────────────────────
-def set_bot_application(application):
+def set_bot_application(application, loop):
     """Inject the bot application instance for webhook processing."""
-    global bot_application
+    global bot_application, bot_loop
     bot_application = application
+    bot_loop = loop
 
 @app.route('/telegram/webhook/<token>', methods=['POST'])
-async def telegram_webhook(token):
+def telegram_webhook(token):
     """Receives updates from Telegram and forwards them to the bot application."""
     if token != os.getenv("TELEGRAM_BOT_TOKEN"):
         logger.warning("🚫 Unauthorized webhook access attempt.")
         return "Unauthorized", 403
     
-    if not bot_application:
+    if not bot_application or not bot_loop:
         logger.error("❌ Bot application not initialized in web app.")
         return "Bot Not Ready", 503
         
     try:
         update_json = request.get_json(force=True)
-        # Process the update asynchronously
-        await process_webhook_update(bot_application, update_json)
+        # Thread-safe dispatch of the async task to the dedicated bot event loop
+        asyncio.run_coroutine_threadsafe(
+            process_webhook_update(bot_application, update_json), 
+            bot_loop
+        )
         return "OK", 200
     except Exception as e:
         logger.error(f"❌ Webhook error: {e}")

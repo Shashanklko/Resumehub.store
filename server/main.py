@@ -81,13 +81,12 @@ def handle_singleton():
         f.write(str(os.getpid()))
     return pid_file
 
-async def run_production():
-    """Starts the application stack using Webhooks (Optimized for Render)."""
+async def init_and_start_webhook_bot(bot_loop):
     application = init_bot()
     if not application: return
     
-    # 1. Inject application into web server
-    set_bot_application(application)
+    # 1. Inject application and loop into web server
+    set_bot_application(application, bot_loop)
     
     # 2. Set Webhook URL
     token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -105,8 +104,25 @@ async def run_production():
     await application.start()
     
     logger.info("🚀 [BOT] Webhook mode active. Entry point: /telegram/webhook/")
+
+def run_production_stack():
+    """Starts the application stack using Webhooks safely isolating asyncio and Flask threads."""
+    import asyncio
     
-    # 3. Start Web Server in main thread (Production usually uses Gunicorn, but this works for development/render)
+    # 1. Create a persistent event loop for the Bot
+    bot_loop = asyncio.new_event_loop()
+    
+    # 2. Start the bot in a dedicated background thread
+    def bot_thread_worker():
+        asyncio.set_event_loop(bot_loop)
+        bot_loop.run_until_complete(init_and_start_webhook_bot(bot_loop))
+        # Keep the loop alive to process incoming webhook events delegated by Flask
+        bot_loop.run_forever()
+        
+    t = threading.Thread(target=bot_thread_worker, daemon=True)
+    t.start()
+    
+    # 3. Start Web Server in main thread
     port = int(os.environ.get("PORT", 10000))
     logger.info(f"[WEB] Starting Master Web Server on port {port}...")
     app.run(host='0.0.0.0', port=port, use_reloader=False)
@@ -119,8 +135,7 @@ def main():
     try:
         if is_render:
             logger.info("🌍 [RENDER] Production environment detected. Initializing Webhook Stack...")
-            import asyncio
-            asyncio.run(run_production())
+            run_production_stack()
         else:
             logger.info("💻 [LOCAL] Development environment detected. Initializing Polling Stack...")
             # Traditional threaded startup for local development
