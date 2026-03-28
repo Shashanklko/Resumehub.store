@@ -48,8 +48,8 @@ else:
     sys.exit(1)
 
 # 3. Import Application Modules (after shared setup is complete)
-from bot import run_bot
-from web_app import app
+from bot import init_bot, run_bot
+from web_app import app, set_bot_application
 
 def start_web():
     """Starts the Flask server."""
@@ -81,21 +81,55 @@ def handle_singleton():
         f.write(str(os.getpid()))
     return pid_file
 
+async def run_production():
+    """Starts the application stack using Webhooks (Optimized for Render)."""
+    application = init_bot()
+    if not application: return
+    
+    # 1. Inject application into web server
+    set_bot_application(application)
+    
+    # 2. Set Webhook URL
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    base_url = os.getenv("RENDER_EXTERNAL_URL")
+    if not base_url:
+        logger.error("❌ RENDER_EXTERNAL_URL not set! Cannot enable webhooks.")
+        return
+    
+    webhook_url = f"{base_url.rstrip('/')}/telegram/webhook/{token}"
+    logger.info(f"[BOT] Setting webhook to: {webhook_url}")
+    
+    # Clear any old polling sessions and set new webhook
+    await application.initialize()
+    await application.bot.set_webhook(url=webhook_url, drop_pending_updates=True)
+    await application.start()
+    
+    logger.info("🚀 [BOT] Webhook mode active. Entry point: /telegram/webhook/")
+    
+    # 3. Start Web Server in main thread (Production usually uses Gunicorn, but this works for development/render)
+    port = int(os.environ.get("PORT", 10000))
+    logger.info(f"[WEB] Starting Master Web Server on port {port}...")
+    app.run(host='0.0.0.0', port=port, use_reloader=False)
+
 def main():
-    """Main entry point to start both services concurrently."""
+    """Main entry point with environment-aware startup."""
     pid_file = handle_singleton()
+    is_render = os.getenv("RENDER") == "true"
     
     try:
-        logger.info(f"🚀 [PID: {os.getpid()}] Starting Master Application Stack...")
-        
-        # Run Web Server in a separate thread
-        web_thread = threading.Thread(target=start_web, daemon=True)
-        web_thread.start()
-        
-        # Run Telegram Bot in the main thread (blocking)
-        logger.info("[BOT] Starting Telegram Bot loop...")
-        run_bot()
-        
+        if is_render:
+            logger.info("🌍 [RENDER] Production environment detected. Initializing Webhook Stack...")
+            import asyncio
+            asyncio.run(run_production())
+        else:
+            logger.info("💻 [LOCAL] Development environment detected. Initializing Polling Stack...")
+            # Traditional threaded startup for local development
+            web_thread = threading.Thread(target=start_web, daemon=True)
+            web_thread.start()
+            
+            logger.info("[BOT] Starting Telegram Bot polling loop...")
+            run_bot()
+            
     except KeyboardInterrupt:
         logger.info("🛑 User requested shutdown.")
     except Exception as e:

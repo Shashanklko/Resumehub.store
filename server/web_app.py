@@ -25,6 +25,11 @@ from utils.docx_generator import build_docx_cv
 from utils.pdf_extractor import extract_resume_text
 from utils.report_generator import build_review_report
 
+# Late import to avoid circular dependency
+# These will be set by the master script (main.py)
+bot_application = None
+from bot import process_webhook_update
+
 logger = logging.getLogger("WEB")
 
 app = Flask(__name__)
@@ -299,6 +304,32 @@ def download_report():
         return send_file(report_path, as_attachment=True, download_name=fname)
     except Exception as e:
         return str(e), 500
+
+# ── Telegram Webhook Entry Point ───────────────────────────────────────────
+def set_bot_application(application):
+    """Inject the bot application instance for webhook processing."""
+    global bot_application
+    bot_application = application
+
+@app.route('/telegram/webhook/<token>', methods=['POST'])
+async def telegram_webhook(token):
+    """Receives updates from Telegram and forwards them to the bot application."""
+    if token != os.getenv("TELEGRAM_BOT_TOKEN"):
+        logger.warning("🚫 Unauthorized webhook access attempt.")
+        return "Unauthorized", 403
+    
+    if not bot_application:
+        logger.error("❌ Bot application not initialized in web app.")
+        return "Bot Not Ready", 503
+        
+    try:
+        update_json = request.get_json(force=True)
+        # Process the update asynchronously
+        await process_webhook_update(bot_application, update_json)
+        return "OK", 200
+    except Exception as e:
+        logger.error(f"❌ Webhook error: {e}")
+        return "Error", 500
 
 # Serve React App
 @app.route('/', defaults={'path': ''})

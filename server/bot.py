@@ -300,16 +300,17 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.reply_text(f"🐐 *Resumegoat:* {answer}", parse_mode="Markdown")
     return SHOWING_RESULTS
 
-# ── Master Runner ─────────────────────────────────────────────────────────────
-def run_bot():
+# ── Bot Factory & Runner ──────────────────────────────────────────────────────
+def init_bot():
+    """Builds and returns the Application object (without starting it)."""
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     if not token: 
         logger.error("❌ No TELEGRAM_BOT_TOKEN found in .env")
-        return
+        return None
     
-    app = Application.builder().token(token).build()
+    application = Application.builder().token(token).build()
     
-    # Initialize convo
+    # Initialize conversation handler
     conv = ConversationHandler(
         entry_points=[
             CommandHandler("start", start), 
@@ -338,9 +339,24 @@ def run_bot():
         allow_reentry=True
     )
     
-    app.add_handler(conv)
+    application.add_handler(conv)
+    return application
+
+def run_bot():
+    """Starts the bot in Polling mode (used for local development)."""
+    application = init_bot()
+    if not application: return
+    
     logger.info(f"🤖 @resumegoatbot is now listening for updates (Polling mode)...")
-    app.run_polling(drop_pending_updates=True)
+    application.run_polling(drop_pending_updates=True)
+
+async def process_webhook_update(application, update_json):
+    """Processes a single update received via webhook."""
+    try:
+        update = Update.de_json(data=update_json, bot=application.bot)
+        await application.process_update(update)
+    except Exception as e:
+        logger.error(f"❌ Error processing webhook update: {e}")
 
 if __name__ == "__main__":
     run_bot()
