@@ -127,9 +127,22 @@ def run_production_stack():
     logger.info(f"[WEB] Starting Master Web Server on port {port}...")
     app.run(host='0.0.0.0', port=port, use_reloader=False)
 
+def ensure_node_dependencies():
+    """Ensures Node.js packages required by the DOCX bridge are installed."""
+    import subprocess
+    node_modules = BASE_DIR / "node_modules"
+    if not node_modules.exists() or not (node_modules / "docx").exists():
+        logger.info("📦 Node dependencies missing. Running 'npm install'...")
+        try:
+            subprocess.run(["npm", "install"], cwd=str(BASE_DIR), check=True)
+            logger.info("✅ Node.js dependencies installed successfully.")
+        except Exception as e:
+            logger.error(f"❌ Failed to install Node.js dependencies: {e}")
+
 def main():
     """Main entry point with environment-aware startup."""
     pid_file = handle_singleton()
+    ensure_node_dependencies()
     is_render = os.getenv("RENDER") == "true"
     
     try:
