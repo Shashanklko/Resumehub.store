@@ -339,18 +339,14 @@ def telegram_webhook(token):
         logger.error(f"❌ Webhook error: {e}")
         return "Error", 500
 
-# Serve React App
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    # CRITICAL: Prevent API routes from being caught by the static server
-    if path.startswith("api/"):
-        return "API Route Not Found", 404
+# Health Check Route for Uptime Services (e.g. cron-job.org)
+@app.route('/')
+def home():
+    return "ResumeHub Backend API is successfully running. 🚀", 200
 
-    if path != "" and os.path.exists(app.static_folder + '/' + path):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
+@app.route('/api/health')
+def health_check():
+    return jsonify({"status": "ok", "service": "ResumeHub Backend"}), 200
 
 def start_web_server():
     port = int(os.environ.get("PORT", 10000))
