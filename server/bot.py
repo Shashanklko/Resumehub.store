@@ -79,9 +79,9 @@ async def reset_session(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    logger.info(f"🛑 [USER: {user.id}] Session cancelled.")
+    logger.info(f"🛑 [USER: {user.id}] Session stopped and cancelled.")
     _cleanup(context.user_data)
-    await update.message.reply_text("❌ Session cancelled. Send /start to begin again.")
+    await update.message.reply_text("🛑 Task stopped. Memory cleared. Send /start to begin a fresh session.")
     return ConversationHandler.END
 
 # ── /contribute ─────────────────────────────────────────────────────────────
@@ -261,7 +261,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == "gen_cv":
         logger.info(f"⚙️ [USER: {user.id}] Starting full document generation & delivery.")
-        await query.edit_message_text("⚙️ Generating 5 PDF formats and 1 Word format... This may take up to 20 seconds. ⏳")
+        # Instead of editing the message and destroying the analysis, we reply down below
+        status_msg = await query.message.reply_text("⚙️ Generating 5 PDF formats and 1 Word format... This may take up to 20 seconds. ⏳")
         
         try:
             if not data.get("improved_data"):
@@ -298,7 +299,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             with open(docx_path, "wb") as f: f.write(docx_bytes)
             await context.bot.send_document(chat_id=uid, document=open(docx_path, "rb"), caption="📝 Word Editable CV (Classic ATS Style)")
 
-            await query.edit_message_text("✅ All documents delivered! Check your messages above. 🐐")
+            await status_msg.edit_text("✅ All documents delivered! Check your messages above. 🐐")
             
             # Send Final Options
             keyboard = [[InlineKeyboardButton("✨ Start New Review", callback_data="reset_session")]]
@@ -306,7 +307,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
         except Exception as e:
             logger.error(f"❌ Document delivery failed for {user.id}: {e}")
-            await query.edit_message_text(f"❌ Delivery failed: {str(e)}")
+            await status_msg.edit_text(f"❌ Delivery failed: {str(e)}")
 
     elif query.data == "reset_session":
         _cleanup(context.user_data)
@@ -346,6 +347,7 @@ def init_bot():
         entry_points=[
             CommandHandler("start", start), 
             CommandHandler("clear", reset_session),
+            CommandHandler("stop", cancel),
             CommandHandler("contribute", handle_contribute),
             MessageHandler(filters.Document.ALL, handle_resume_file)
         ],
@@ -365,6 +367,7 @@ def init_bot():
         },
         fallbacks=[
             CommandHandler("cancel", cancel), 
+            CommandHandler("stop", cancel),
             CommandHandler("reset", reset_session),
             CommandHandler("clear", reset_session),
             CommandHandler("contribute", handle_contribute)

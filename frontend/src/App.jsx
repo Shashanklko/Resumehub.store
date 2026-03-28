@@ -154,6 +154,49 @@ const useTypewriter = (text, speed = 10, active = true) => {
   return { displayedText, isTyping };
 };
 
+const LOGO_WORDS = ["Resumehub.store", "ResumeGoat.bot"];
+
+const TypewriterLogo = () => {
+  const [text, setText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [loopNum, setLoopNum] = useState(0);
+  const [typingSpeed, setTypingSpeed] = useState(100);
+
+  useEffect(() => {
+    const handleType = () => {
+      const i = loopNum % LOGO_WORDS.length;
+      const fullText = LOGO_WORDS[i];
+
+      setText(
+        isDeleting
+          ? fullText.substring(0, text.length - 1)
+          : fullText.substring(0, text.length + 1)
+      );
+
+      setTypingSpeed(isDeleting ? 40 : 100);
+
+      if (!isDeleting && text === fullText) {
+         setTypingSpeed(2500); // Wait longer when word is complete
+         setIsDeleting(true);
+      } else if (isDeleting && text === "") {
+         setIsDeleting(false);
+         setLoopNum(loopNum + 1);
+         setTypingSpeed(500); // Pause before next word
+      }
+    };
+
+    const timer = setTimeout(handleType, typingSpeed);
+    return () => clearTimeout(timer);
+  }, [text, isDeleting, loopNum, typingSpeed]);
+
+  return (
+    <span className="inline-block min-w-[200px]">
+      {text}
+      <span className="animate-[pulse_1s_cubic-bezier(0.4,0,0.6,1)_infinite] border-r-[3px] border-purple-400 ml-[1px] h-5 inline-block align-middle transform -translate-y-[2px]"></span>
+    </span>
+  );
+};
+
 // Formatted Message Component (Markdown-lite)
 const FormattedMessage = ({ content, isLatest, isModel }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -358,12 +401,12 @@ export default function App() {
 
       <nav className="relative z-10 border-b border-white/5 bg-black/20 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-              Resumehub.store
+              <TypewriterLogo />
             </span>
-          </div>
+          </a>
           <div className="flex items-center gap-6">
             <a 
               href="https://t.me/resumegoatbot" 
