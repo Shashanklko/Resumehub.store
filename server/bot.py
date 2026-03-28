@@ -84,6 +84,37 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Session cancelled. Send /start to begin again.")
     return ConversationHandler.END
 
+# ── /contribute ─────────────────────────────────────────────────────────────
+async def handle_contribute(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    logger.info(f"💖 [USER: {user.id}] Requested contribute info.")
+    
+    text = (
+        "🤝 *Support Resumegoat*\n\n"
+        "This project is maintained by contributors like @Shashanklko to provide a premium AI resume experience for free.\n\n"
+        "If you found this tool helpful, consider supporting the developers:\n\n"
+        "💎 *Crypto Donations:*\n"
+        "• *USDT (TRC20):* `TQdsoT57Dsm5mSkXvJJVu2VsnEtjTm2w8N`\n"
+        "• *USDT (BEP20):* `0x211e210c6541d6e3ed9330153ce70819a59c5c5d`\n"
+        "• *ETH (ERC20):* `0x211e210c6541d6e3ed9330153ce70819a59c5c5d`\n"
+        "• *BTC (BTC):* `16Jzr9AX3rX4ody2bSUCR8nuDD23dGrdja`\n\n"
+        "You can also use *Binance Pay* via our integrated Web App.\n\n"
+        "☕ *Buy Me a Coffee:*\n"
+        "https://buymeacoffee.com/shashanklko\n\n"
+        "Thank you for keeping the AI engine running! ❤️"
+    )
+    
+    # Try sending photo if it exists locally
+    try:
+        qr_path = os.path.join(str(Path(__file__).parent.parent), "binance-qr.png")
+        if os.path.exists(qr_path):
+            await update.message.reply_photo(photo=open(qr_path, "rb"), caption=text, parse_mode="Markdown")
+            return
+    except Exception as e:
+        logger.error(f"❌ Failed to attach QR Code: {e}")
+        
+    await update.message.reply_text(text, parse_mode="Markdown")
+
 # ── Resume Upload Handler ─────────────────────────────────────────────────────
 async def handle_resume_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -315,6 +346,7 @@ def init_bot():
         entry_points=[
             CommandHandler("start", start), 
             CommandHandler("clear", reset_session),
+            CommandHandler("contribute", handle_contribute),
             MessageHandler(filters.Document.ALL, handle_resume_file)
         ],
         states={
@@ -334,7 +366,8 @@ def init_bot():
         fallbacks=[
             CommandHandler("cancel", cancel), 
             CommandHandler("reset", reset_session),
-            CommandHandler("clear", reset_session)
+            CommandHandler("clear", reset_session),
+            CommandHandler("contribute", handle_contribute)
         ],
         allow_reentry=True
     )

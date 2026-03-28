@@ -957,14 +957,15 @@ export default function App() {
                     
                     <div className="space-y-4">
                       {[
-                        { label: 'BTC', addr: 'bc1qshashanklko...' },
-                        { label: 'ETH', addr: '0xshashanklko...' },
-                        { label: 'SOL', addr: 'shashanklko...' }
+                        { label: 'USDT (TRC20)', addr: 'TQdsoT57Dsm5mSkXvJJVu2VsnEtjTm2w8N' },
+                        { label: 'USDT (BEP20)', addr: '0x211e210c6541d6e3ed9330153ce70819a59c5c5d' },
+                        { label: 'ETH (ERC20)', addr: '0x211e210c6541d6e3ed9330153ce70819a59c5c5d' },
+                        { label: 'BTC (BTC)', addr: '16Jzr9AX3rX4ody2bSUCR8nuDD23dGrdja' }
                       ].map(crypto => (
                         <div key={crypto.label} className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-xl hover:border-purple-500/40 transition-all group/item">
-                          <div>
+                          <div className="overflow-hidden mr-2">
                             <p className="text-[10px] font-black text-purple-400 mb-0.5">{crypto.label}</p>
-                            <p className="text-xs text-slate-400 font-mono truncate max-w-[120px]">{crypto.addr}</p>
+                            <p className="text-xs text-slate-400 font-mono truncate">{crypto.addr}</p>
                           </div>
                           <button 
                             onClick={() => {
@@ -972,12 +973,28 @@ export default function App() {
                               setCopyFeedback(crypto.label);
                               setTimeout(() => setCopyFeedback(""), 2000);
                             }}
-                            className="p-2 hover:bg-purple-500/20 rounded-lg text-slate-500 hover:text-purple-400 transition-all"
+                            className="p-2 shrink-0 hover:bg-purple-500/20 rounded-lg text-slate-500 hover:text-purple-400 transition-all"
                           >
-                            {copyFeedback === crypto.label ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            {copyFeedback === crypto.label ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
                           </button>
                         </div>
                       ))}
+                    </div>
+
+                    {/* Binance Pay QR Section */}
+                    <div className="mt-6 pt-6 border-t border-white/5 flex flex-col items-center">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 text-center">Scan with Binance App to Pay</p>
+                        <div className="bg-white p-2 rounded-[20px] shadow-lg">
+                            <img 
+                                src="/binance-qr.png" 
+                                alt="Binance Pay QR" 
+                                className="w-32 h-32 object-contain rounded-xl" 
+                                onError={(e) => {
+                                    e.target.style.display='none';
+                                    e.target.parentElement.innerHTML = '<div class="w-32 h-32 flex items-center justify-center text-xs text-black/50 text-center font-bold">Please save binance-qr.png to public/ folder</div>';
+                                }} 
+                            />
+                        </div>
                     </div>
                   </div>
                 </div>
