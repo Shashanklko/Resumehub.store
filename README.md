@@ -29,7 +29,7 @@ AI-powered resume analyzer and CV generator built with Gemini API + python-teleg
 1. Go to https://aistudio.google.com/
 2. Sign up / log in
 3. Go to **Get API key** → **Create API key**
-4. Copy your key — looks like: `AIzaSy...`
+4. Copy your key — looks like : `AIzaSy...`
 
 ### 3. Install Dependencies
 ```bash
@@ -156,3 +156,4 @@ python bot.py
 ---
 
 Built with ❤️ using Python, python-telegram-bot, Google Gemini API, and ReportLab.
+
