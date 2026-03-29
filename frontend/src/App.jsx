@@ -15,7 +15,7 @@ import {
   Target,
   X,
   Users,
-  Coffee,
+  CreditCard,
   Coins,
   Copy
 } from 'lucide-react';
@@ -994,18 +994,18 @@ export default function App() {
                         exit={{ opacity: 0, x: -20 }}
                         className="grid grid-cols-1 md:grid-cols-2 gap-6"
                       >
-                        {/* Buy Me a Coffee */}
+                        {/* Razorpay Support */}
                         <a 
-                          href="https://buymeacoffee.com/shashanklko" 
+                          href="https://razorpay.me/@resumehub" 
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group p-8 bg-gradient-to-br from-yellow-500/5 to-yellow-500/10 hover:from-yellow-500/10 hover:to-yellow-500/20 border border-yellow-500/20 rounded-3xl transition-all duration-300 flex flex-col items-center justify-center text-center min-h-[260px]"
+                          className="group p-8 bg-gradient-to-br from-blue-500/5 to-blue-500/10 hover:from-blue-500/10 hover:to-blue-500/20 border border-blue-500/20 rounded-3xl transition-all duration-300 flex flex-col items-center justify-center text-center min-h-[260px]"
                         >
-                          <div className="w-16 h-16 bg-yellow-500/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg">
-                            <Coffee className="text-yellow-400 w-8 h-8" />
+                          <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg">
+                            <CreditCard className="text-blue-400 w-8 h-8" />
                           </div>
-                          <h3 className="text-xl font-bold text-white mb-3">Buy Me a Coffee</h3>
-                          <p className="text-xs text-slate-400 leading-relaxed uppercase tracking-wider font-bold">Quick & Easy Support</p>
+                          <h3 className="text-xl font-bold text-white mb-3">Support via Razorpay</h3>
+                          <p className="text-xs text-slate-400 leading-relaxed uppercase tracking-wider font-bold">Secure Indian Payments</p>
                         </a>
 
                         {/* Crypto Selection Button */}

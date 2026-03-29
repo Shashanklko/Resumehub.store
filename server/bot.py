@@ -106,8 +106,8 @@ async def handle_contribute(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• *ETH (ERC20):* `0x211e210c6541d6e3ed9330153ce70819a59c5c5d`\n"
         "• *BTC (BTC):* `16Jzr9AX3rX4ody2bSUCR8nuDD23dGrdja`\n\n"
         "You can also use *Binance Pay* via our integrated Web App.\n\n"
-        "☕ *Buy Me a Coffee:*\n"
-        "https://buymeacoffee.com/shashanklko\n\n"
+        "💳 *Support via Razorpay:*\n"
+        "https://razorpay.me/@resumehub\n\n"
         "Thank you for keeping the AI engine running! ❤️"
     )
     
