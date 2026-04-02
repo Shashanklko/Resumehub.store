@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { 
   FileText, 
@@ -275,6 +275,101 @@ const FormattedMessage = ({ content, isLatest, isModel }) => {
 // API URL (will be configured via VITE_API_URL on Vercel)
 const API_BASE = import.meta.env.DEV ? 'http://localhost:10000' : (import.meta.env.VITE_API_URL || '');
 
+// ── FAQ Data & Component ──
+const FAQ_ITEMS = [
+  {
+    q: "What is an ATS score and why does it matter?",
+    a: "An ATS (Applicant Tracking System) score measures how well your resume matches a job description. Most companies use ATS software to filter resumes before a human reads them. A higher ATS score means your resume is more likely to reach a hiring manager."
+  },
+  {
+    q: "Is Resumehub.store free to use?",
+    a: "Yes, Resumehub.store is completely free. You can upload your resume, get an AI-powered ATS score, receive improvement suggestions, and download professional CV formats — all at no cost."
+  },
+  {
+    q: "What file formats does Resumehub support?",
+    a: "Resumehub.store accepts PDF, DOCX, DOC, and TXT files up to 5MB. You can download your improved resume as a PDF or Word (.docx) file in 5 professional formats."
+  },
+  {
+    q: "How does the AI resume analysis work?",
+    a: "Powered by Google Gemini AI, Resumehub extracts content from your resume, compares it against the job description, scores each section (skills, experience, education, formatting), and generates actionable suggestions to improve your match rate."
+  },
+  {
+    q: "What CV formats can I download?",
+    a: "You can download your resume in 5 premium formats: Classic ATS (Audric), Specialized Technical, Sidebar Left (Elite), Sidebar Right (Elite), and Modern 2-Page Professional — as PDF or DOCX."
+  },
+  {
+    q: "Can I use Resumehub without a job description?",
+    a: "Yes! Use the 'Fast Format' mode to instantly reformat your resume into our professional CV suite without needing a job description. 'JD Matching' mode gives full ATS analysis when you have a specific job posting."
+  }
+];
+
+const FaqSection = () => {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  return (
+    <section aria-labelledby="faq-heading" className="mt-16 max-w-3xl mx-auto">
+      <div className="text-center mb-10">
+        <h2 id="faq-heading" className="text-2xl font-bold text-white mb-3">
+          Frequently Asked Questions
+        </h2>
+        <p className="text-sm text-slate-500">Everything you need to know about AI resume analysis</p>
+      </div>
+      <div className="space-y-3" itemScope itemType="https://schema.org/FAQPage">
+        {FAQ_ITEMS.map((item, i) => {
+          const isOpen = openIndex === i;
+          return (
+            <div
+              key={i}
+              itemScope
+              itemProp="mainEntity"
+              itemType="https://schema.org/Question"
+              className={cn(
+                "border rounded-2xl overflow-hidden transition-all duration-300",
+                isOpen ? "border-purple-500/30 bg-purple-500/5" : "border-white/8 bg-white/[0.02] hover:border-white/15"
+              )}
+            >
+              <button
+                onClick={() => setOpenIndex(isOpen ? null : i)}
+                aria-expanded={isOpen}
+                className="w-full px-6 py-5 flex items-center justify-between text-left gap-4"
+              >
+                <span itemProp="name" className="text-sm font-semibold text-white leading-snug">{item.q}</span>
+                <span className={cn(
+                  "shrink-0 w-6 h-6 rounded-full border flex items-center justify-center transition-all duration-300",
+                  isOpen ? "border-purple-500/50 bg-purple-500/20 rotate-45" : "border-white/10 bg-white/5"
+                )}>
+                  <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </span>
+              </button>
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    key="answer"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                    itemScope
+                    itemProp="acceptedAnswer"
+                    itemType="https://schema.org/Answer"
+                  >
+                    <div className="px-6 pb-6">
+                      <p itemProp="text" className="text-sm text-slate-400 leading-relaxed border-t border-white/5 pt-4">{item.a}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+};
+
 export default function App() {
   const [file, setFile] = useState(null);
   const [jd, setJd] = useState('');
@@ -399,10 +494,13 @@ export default function App() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
       </div>
 
-      <nav className="relative z-10 border-b border-white/5 bg-black/20 backdrop-blur-xl">
+      {/* Visually hidden static H1 for SEO crawlers */}
+      <h1 className="sr-only">Resumehub.store – Free AI Resume Reviewer, ATS Score Checker & Professional CV Generator</h1>
+
+      <nav aria-label="Main navigation" className="relative z-10 border-b border-white/5 bg-black/20 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-            <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
+          <a href="/" aria-label="Resumehub.store home" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
+            <img src="/logo.png" alt="Resumehub.store logo" width="40" height="40" className="w-10 h-10 object-contain" />
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
               <TypewriterLogo />
             </span>
@@ -412,18 +510,21 @@ export default function App() {
               href="https://t.me/resumegoatbot" 
               target="_blank" 
               rel="noopener noreferrer" 
+              aria-label="Open ResumeGoat Telegram Bot"
               className="text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1.5"
             >
               <MessageSquare className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Telegram Bot</span>
             </a>
             <button 
               onClick={() => setIsDonateModalOpen(true)}
+              aria-label="Support the project"
               className="text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1.5"
             >
               <Users className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Contribute</span>
             </button>
             <button 
               onClick={reset}
+              aria-label="Start a new resume analysis"
               className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm font-medium transition-all"
             >
               New Analysis
@@ -432,7 +533,7 @@ export default function App() {
         </div>
       </nav>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-6 pt-4 pb-12">
+      <main id="main-content" aria-label="Resume analyzer" className="relative z-10 max-w-7xl mx-auto px-6 pt-4 pb-12">
         <AnimatePresence mode="wait">
           {!analysis ? (
             <motion.div 
@@ -571,6 +672,9 @@ export default function App() {
                   </div>
                 </div>
               </form>
+
+              {/* ── FAQ Section ── */}
+              <FaqSection />
             </motion.div>
           ) : (
             <motion.div 
@@ -1094,8 +1198,57 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <footer className="relative z-10 py-12 border-t border-white/5 text-center mt-20 opacity-0 pointer-events-none">
-        {/* Hidden reserved space for layout stability */}
+      {/* ── Real SEO Footer ── */}
+      <footer aria-label="Site footer" className="relative z-10 border-t border-white/5 mt-20 py-14 bg-black/20 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+            {/* Brand */}
+            <div>
+              <a href="/" className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
+                <img src="/logo.png" alt="Resumehub.store" width="32" height="32" className="w-8 h-8 object-contain" />
+                <span className="text-sm font-bold text-white">Resumehub.store</span>
+              </a>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Free AI-powered resume analyzer and professional CV generator. Improve your ATS score and land more interviews.
+              </p>
+            </div>
+
+            {/* Quick Links */}
+            <nav aria-label="Footer navigation">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4">Quick Links</p>
+              <ul className="space-y-2">
+                <li><a href="/" className="text-xs text-slate-400 hover:text-white transition-colors">AI Resume Analyzer</a></li>
+                <li><a href="https://t.me/resumegoatbot" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-white transition-colors">Telegram Bot</a></li>
+                <li><a href="https://github.com/Shashanklko/resumehub.store" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-white transition-colors">GitHub Repository</a></li>
+                <li><a href="https://razorpay.me/@resumehub" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-white transition-colors">Support Us</a></li>
+              </ul>
+            </nav>
+
+            {/* Features */}
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4">Features</p>
+              <ul className="space-y-2">
+                <li className="text-xs text-slate-400">✓ ATS Score Checker</li>
+                <li className="text-xs text-slate-400">✓ Job Description Matching</li>
+                <li className="text-xs text-slate-400">✓ 5 Professional CV Formats</li>
+                <li className="text-xs text-slate-400">✓ AI Resume Chat Assistant</li>
+                <li className="text-xs text-slate-400">✓ PDF &amp; DOCX Export</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[10px] text-slate-600 uppercase tracking-widest">
+              &copy; {new Date().getFullYear()} Resumehub.store — All rights reserved.
+            </p>
+            <p className="text-[10px] text-slate-600">
+              Built with ❤ by{' '}
+              <a href="https://github.com/shashanklko" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors">Shashank</a>,{' '}
+              <a href="https://github.com/SumitSingh3101" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors">Sumit</a> &amp;{' '}
+              <a href="https://github.com/Srinayan-96" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors">Srinayan</a>
+            </p>
+          </div>
+        </div>
       </footer>
     </div>
   );

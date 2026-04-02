@@ -1,0 +1,12 @@
+# Resumehub.store — robots.txt
+# Allow all search engine crawlers
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://resumehub.store/sitemap.xml
+
+# Crawl-delay (optional, be gentle)
+Crawl-delay: 5
