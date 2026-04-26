@@ -1129,7 +1129,7 @@ export default function App() {
                       >
                         {/* Razorpay Support */}
                         <a 
-                          href="https://razorpay.me/@resumehub" 
+                          href="https://razorpay.me/@nowayside" 
                           target="_blank"
                           rel="noopener noreferrer"
                           className="group p-8 bg-gradient-to-br from-blue-500/5 to-blue-500/10 hover:from-blue-500/10 hover:to-blue-500/20 border border-blue-500/20 rounded-3xl transition-all duration-300 flex flex-col items-center justify-center text-center min-h-[260px]"
@@ -1249,7 +1249,7 @@ export default function App() {
                 <li><a href="/" className="text-xs text-slate-400 hover:text-white transition-colors">AI Resume Analyzer</a></li>
                 <li><a href="https://t.me/resumegoatbot" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-white transition-colors">Telegram Bot</a></li>
                 <li><a href="https://github.com/Shashanklko/resumehub.store" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-white transition-colors">GitHub Repository</a></li>
-                <li><a href="https://razorpay.me/@resumehub" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-white transition-colors">Support Us</a></li>
+                <li><a href="https://razorpay.me/@nowayside" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-white transition-colors">Support Us</a></li>
               </ul>
             </nav>
 
