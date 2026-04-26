@@ -107,7 +107,7 @@ async def handle_contribute(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• *BTC (BTC):* `16Jzr9AX3rX4ody2bSUCR8nuDD23dGrdja`\n\n"
         "You can also use *Binance Pay* via our integrated Web App.\n\n"
         "💳 *Support via Razorpay:*\n"
-        "https://razorpay.me/@resumehub\n\n"
+        "https://razorpay.me/@nowayside\n\n"
         "Thank you for keeping the AI engine running! ❤️"
     )
     
