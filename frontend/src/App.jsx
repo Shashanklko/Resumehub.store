@@ -154,7 +154,7 @@ const useTypewriter = (text, speed = 10, active = true) => {
   return { displayedText, isTyping };
 };
 
-const LOGO_WORDS = ["Resumehub.store", "ResumeGoat.bot"];
+const LOGO_WORDS = ["Noway.store", "ResumeGoat.bot"];
 
 const TypewriterLogo = () => {
   const [text, setText] = useState("");
