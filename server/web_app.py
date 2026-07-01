@@ -19,7 +19,7 @@ from flask_cors import CORS
 import google.generativeai as genai
 
 # Import utilities from the current package
-from utils.resume_analyzer import analyze_resume, generate_improved_resume, generate_simple_resume, answer_counter_question
+from utils.resume_analyzer import analyze_resume, audit_resume, generate_improved_resume, generate_simple_resume, answer_counter_question
 from utils.pdf_generator import FORMATS as PDF_FORMATS
 from utils.docx_generator import build_docx_cv
 from utils.pdf_extractor import extract_resume_text
@@ -103,6 +103,58 @@ def analyze():
         print(f"!!! WEB ANALYZE ERROR: {e}", flush=True)
         shutil.rmtree(tmp_dir, ignore_errors=True)
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/audit', methods=['POST', 'OPTIONS'], strict_slashes=False)
+def audit():
+    print(">>> [Web API] Received audit request", flush=True)
+    if 'resume' not in request.files:
+        return jsonify({"error": "No resume file provided"}), 400
+    
+    resume_file = request.files['resume']
+    
+    # Create session ID
+    sid = str(uuid.uuid4())
+    tmp_dir = tempfile.mkdtemp(prefix=f"resumeweb_audit_{sid}_")
+    
+    ext = Path(resume_file.filename).suffix.lower()
+    if ext not in (".pdf", ".docx", ".doc", ".txt"):
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        return jsonify({"error": "Unsupported file format"}), 400
+        
+    resume_path = os.path.join(tmp_dir, f"resume{ext}")
+    resume_file.save(resume_path)
+    
+    try:
+        resume_text = extract_resume_text(resume_path)
+        if len(resume_text.strip()) < 50:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+            return jsonify({"error": "Could not extract text from resume"}), 400
+            
+        print(f">>> [Web API] Auditing resume with Gemini...", flush=True)
+        analysis = audit_resume(resume_text, BENCHMARK)
+        
+        WEB_DATA[sid] = {
+            "tmp_dir": tmp_dir,
+            "resume_path": resume_path,
+            "resume_text": resume_text,
+            "jd_text": "None (General Audit)",
+            "analysis": analysis,
+            "chat_history": []
+        }
+        
+        print(f">>> [Web API] Audit success for {sid}", flush=True)
+        return jsonify({
+            "sid": sid,
+            "analysis": analysis
+        })
+        
+    except Exception as e:
+        logger.error(f"!!! WEB AUDIT ERROR: {e}", exc_info=True)
+        print(f"!!! WEB AUDIT ERROR: {e}", flush=True)
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/simple_generate', methods=['POST', 'OPTIONS'], strict_slashes=False)
 def simple_generate():

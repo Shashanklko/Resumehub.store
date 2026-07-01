@@ -424,7 +424,12 @@ export default function App() {
     }
 
     try {
-      const endpoint = mode === 'analyze' ? `${API_BASE}/api/analyze` : `${API_BASE}/api/simple_generate`;
+      let endpoint = `${API_BASE}/api/simple_generate`;
+      if (mode === 'analyze') {
+        endpoint = `${API_BASE}/api/analyze`;
+      } else if (mode === 'audit') {
+        endpoint = `${API_BASE}/api/audit`;
+      }
       const res = await axios.post(endpoint, formData);
       
       setSid(res.data.sid);
@@ -434,7 +439,7 @@ export default function App() {
       if (typeof gtag !== 'undefined') {
         gtag('event', 'page_view', { page_title: 'Resume Analysis Results', page_path: '/results' });
       }
-      if (mode === 'analyze') {
+      if (mode === 'analyze' || mode === 'audit') {
         setAnalysis(res.data.analysis);
       } else {
         // Simple mode: straight to improved CVs
@@ -577,7 +582,9 @@ export default function App() {
                   Get Professional <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-500">AI Resume Analysis</span>
                 </h1>
                 <p className="text-lg text-slate-400 max-w-xl mx-auto leading-relaxed">
-                  Is your resume industry-ready? Upload your CV and paste the job description to get an instant ATS score, improvement tips, and 5 premium CV formats.
+                  {mode === 'analyze' && "Is your resume industry-ready? Upload your CV and paste the job description to get an instant ATS score, improvement tips, and 5 premium CV formats."}
+                  {mode === 'audit' && "Is your resume industry-ready? Upload your CV to get an instant general ATS audit score, detailed recommendations, and 5 premium CV formats."}
+                  {mode === 'simple' && "Instantly restructure your resume into our professional, ATS-friendly Elite CV formats in seconds (no job description or scores needed)."}
                 </p>
               </div>
 
@@ -599,6 +606,18 @@ export default function App() {
                         )}
                       >
                         JD Matching
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMode('audit')}
+                        className={cn(
+                          "px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+                          mode === 'audit' 
+                            ? "bg-white text-black shadow-xl" 
+                            : "text-slate-500 hover:text-slate-300"
+                        )}
+                      >
+                        General Audit
                       </button>
                       <button
                         type="button"
@@ -682,11 +701,11 @@ export default function App() {
                       {loading ? (
                         <>
                           <RefreshCw className="animate-spin w-5 h-5" />
-                          {mode === 'analyze' ? 'Analyzing Experience...' : 'Formatting Layout...'}
+                          {mode === 'analyze' ? 'Analyzing Experience...' : mode === 'audit' ? 'Auditing Resume...' : 'Formatting Layout...'}
                         </>
                       ) : (
                         <>
-                          {mode === 'analyze' ? 'Analyze & Optimize' : 'Generate Professional CVs'}
+                          {mode === 'analyze' ? 'Analyze & Optimize' : mode === 'audit' ? 'Audit & Optimize' : 'Generate Professional CVs'}
                           <ArrowRight className="w-5 h-5" />
                         </>
                       )}
@@ -723,7 +742,9 @@ export default function App() {
                         <RadarChart data={analysis.section_scores} size={320} />
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                           <span className="text-5xl font-bold text-white tracking-tighter">{analysis.overall_score}%</span>
-                          <span className="text-[10px] uppercase font-black text-purple-500/80 tracking-[0.2em]">Overall Match</span>
+                          <span className="text-[10px] uppercase font-black text-purple-500/80 tracking-[0.2em]">
+                            {mode === 'analyze' ? 'Overall Match' : 'Overall Quality'}
+                          </span>
                         </div>
                       </div>
   
@@ -740,7 +761,9 @@ export default function App() {
                           )}
                           <span className="text-slate-500 text-xs">Benchmark: {analysis.benchmark}%</span>
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-3">Analysis Result</h2>
+                        <h2 className="text-2xl font-bold text-white mb-3">
+                          {mode === 'analyze' ? 'JD Match Result' : 'Audit Result'}
+                        </h2>
                         <p className="text-slate-400 leading-relaxed italic">"{analysis.summary}"</p>
                       </div>
                     </div>

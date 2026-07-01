@@ -106,6 +106,70 @@ Respond ONLY with a valid JSON object (no markdown, no explanation outside JSON)
     return result
 
 
+def audit_resume(resume_text: str, benchmark: int = 70) -> dict:
+    """
+    Analyze resume against general professional & ATS best practices.
+    Returns the same JSON structure as analyze_resume.
+    """
+    prompt = f"""You are an expert ATS (Applicant Tracking System) and senior technical recruiter.
+
+Analyze the following resume against industry-standard professional guidelines and ATS parsing rules.
+
+IMPORTANT LOGIC RULES:
+1. **IGNORE ALL PROJECT DATES**: Do not flag future dates or missing dates as errors.
+2. **CHECK EVERY PROJECT**: You must iterate over every single project in the resume and evaluate its technical depth and business impact.
+3. **HARDER SCORING**: Be critical. An 'Average' score is 50-60. A 'Passed' score (70+) requires quantifiable metrics (e.g., %, $, hours) and high-impact action verbs.
+4. **MANDATE 5 SUGGESTIONS**: You must provide exactly 5 high-impact suggestions across different sections.
+
+=== RESUME ===
+{resume_text}
+
+Respond ONLY with a valid JSON object (no markdown, no explanation outside JSON) with this exact structure:
+{{
+  "overall_score": <integer 0-100>,
+  "section_scores": {{
+    "skills_match": <0-100 (evaluate skills listing completeness and categorization)>,
+    "experience_relevance": <0-100 (evaluate quantifiable achievements and action verb quality)>,
+    "education_fit": <0-100 (evaluate degree listing correctness and credentials completeness)>,
+    "keywords_ats": <0-100 (evaluate general density of standard industry keywords)>,
+    "formatting_clarity": <0-100 (evaluate general layout organization and readability)>
+  }},
+  "strengths": ["<list of 3-5 specific strengths>"],
+  "weaknesses": ["<list of 3-5 specific weaknesses>"],
+  "missing_keywords": ["<list of standard industry keywords or certifications missing from the resume that could boost ATS matches>"],
+  "suggestions": [
+    {{ "section": "<section 1>", "issue": "<issue 1>", "fix": "<fix 1>" }},
+    {{ "section": "<section 2>", "issue": "<issue 2>", "fix": "<fix 2>" }},
+    {{ "section": "<section 3>", "issue": "<issue 3>", "fix": "<fix 3>" }},
+    {{ "section": "<section 4>", "issue": "<issue 4>", "fix": "<fix 4>" }},
+    {{ "section": "<section 5>", "issue": "<issue 5>", "fix": "<fix 5>" }}
+  ],
+  "ats_verdict": "<PASS or FAIL>",
+  "summary": "<2-3 sentence overall assessment of CV quality and readiness>"
+}}"""
+
+    raw = call_gemini_with_fallback(prompt)
+    # Strip any accidental markdown
+    raw = re.sub(r"```json|```", "", raw).strip()
+    try:
+        result = json.loads(raw)
+    except json.JSONDecodeError:
+        result = {
+            "overall_score": 0,
+            "section_scores": {},
+            "strengths": ["Could not parse response"],
+            "weaknesses": ["Could not parse response"],
+            "missing_keywords": [],
+            "suggestions": [],
+            "ats_verdict": "FAIL",
+            "summary": "Error parsing JSON from API."
+        }
+        
+    result["benchmark"] = benchmark
+    result["passed"] = result.get("overall_score", 0) >= benchmark
+    return result
+
+
 def answer_counter_question(question: str, resume_text: str, jd_text: str, analysis: dict, chat_history: list = None) -> str:
     """
     Answer user's question about the resume analysis.
